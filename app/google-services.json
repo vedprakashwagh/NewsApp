@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "57755242677",
+    "project_id": "fir-testapp-81c68",
+    "storage_bucket": "fir-testapp-81c68.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57755242677:android:57c399ccd4a85a57902efc",
+        "android_client_info": {
+          "package_name": "com.example.newsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "57755242677-qhmcrgbqlr339madfapev1v3ec2kntve.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWoe7x0hKFGWDUsfQ7rR_aln9x8-qifOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "57755242677-qhmcrgbqlr339madfapev1v3ec2kntve.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
