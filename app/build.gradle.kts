@@ -86,6 +86,8 @@ dependencies {
     //Coil
     implementation(libs.landscapist.coil)
     implementation(libs.landscapist.coil.palette)
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
 
     //For Chrome Custom Tabs
     implementation(libs.androidx.browser)

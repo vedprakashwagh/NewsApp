@@ -3,7 +3,9 @@ package com.example.newsapp.ui.home
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -44,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.UiMode
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.newsapp.data.local.Dummy
 import com.example.newsapp.domain.model.responses.Article
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -52,6 +56,7 @@ import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.palette.PalettePlugin
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NewsList(
     modifier: Modifier, data: List<Article>, navigator: DestinationsNavigator
@@ -64,10 +69,13 @@ fun NewsList(
             NotificationPermission(rgbColor = Color.Black, bodyTextColor = Color.White)
         }
 
-        items(data) { article ->
+        items(data/*, key = {
+            it.title + it.url
+        }*/) { article ->
 
-            NewsArticle(
+            HorizontalNewsArticle(
                 modifier = Modifier
+                    /*.animateItemPlacement()*/
                     .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
                     .fillMaxWidth(), article = article,
                 articleClicked = {
@@ -82,6 +90,73 @@ fun NewsList(
     }
 }
 
+/**
+ * Currently shouldShowDescription controls the state of visibility of description block.
+ * Unfortunately since this state is never saved, it's reset after the list item is recycled.
+ * To fix this, we'll need to create a new Model class containing state data of News Article as well.
+ */
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HorizontalNewsArticle(
+    modifier: Modifier, article: Article, articleClicked: () -> Unit
+) = Column(modifier = modifier) {
+
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = ShapeDefaults.Medium,
+        onClick = {
+            articleClicked()
+        }
+    ) {
+        Row(
+            modifier = Modifier
+                .height(IntrinsicSize.Max)
+                .fillMaxWidth()
+        ) {
+
+            AsyncImage(
+                model = article.urlToImage,
+                contentDescription = "News Image",
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(0.35f)
+                    .fillMaxHeight()
+                    .animateContentSize(),
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(0.65f)
+                    .padding(12.dp)
+                /*.weight(if (article.urlToImage?.isEmpty() == false) 0.65f else 1f)*/,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+
+                Text(
+                    article.source?.name ?: "Unavailable",
+                    style = MaterialTheme.typography.labelSmall,
+                    /*color = contentColor.value*/
+                )
+
+                Text(
+                    text = article.title ?: "Unavailable",
+                    style = MaterialTheme.typography.titleLarge,
+                    /*color = contentColor.value*/
+                )
+
+                Text(
+                    text = "${if (article.author != null) article.author + " • " else ""}${article.getDisplayDate()}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    /*color = contentColor.value*/
+                )
+            }
+        }
+    }
+}
+
 
 /**
  * Currently shouldShowDescription controls the state of visibility of description block.
@@ -91,24 +166,24 @@ fun NewsList(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewsArticle(
+fun VerticalNewsArticle(
     modifier: Modifier, article: Article, articleClicked: () -> Unit
 ) = Column(modifier = modifier) {
 
-    val containerColor = remember { mutableStateOf(Color(0xff000000)) }
-    val contentColor = remember { mutableStateOf(Color(0xffffffff)) }
+    //val containerColor = remember { mutableStateOf(Color(0xff000000)) }
+    //val contentColor = remember { mutableStateOf(Color(0xffffffff)) }
 
     var shouldShowDescription by remember { mutableStateOf(false) }
 
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth(),
-        shape = ShapeDefaults.Medium,
+        shape = ShapeDefaults.Medium/*,
         colors = CardDefaults.outlinedCardColors(
             containerColor = containerColor.value,
             contentColor = contentColor.value
         ),
-        border = BorderStroke(1.dp, contentColor.value),
+        border = BorderStroke(1.dp, contentColor.value)*/,
         onClick = {
             articleClicked()
         }
@@ -134,8 +209,8 @@ fun NewsArticle(
                         val swatch = it.dominantSwatch ?: it.mutedSwatch ?: it.vibrantSwatch
                         ?: it.lightMutedSwatch ?: it.lightVibrantSwatch
 
-                        containerColor.value = Color(swatch?.rgb ?: 0)
-                        contentColor.value = Color(swatch?.bodyTextColor ?: 0)
+                        //containerColor.value = Color(swatch?.rgb ?: 0)
+                        //contentColor.value = Color(swatch?.bodyTextColor ?: 0)
                     }
                 })
 
@@ -149,20 +224,20 @@ fun NewsArticle(
                 Text(
                     article.source?.name ?: "Unavailable",
                     style = MaterialTheme.typography.labelSmall,
-                    color = contentColor.value
+                    /*color = contentColor.value*/
                 )
 
                 Text(
                     text = article.title ?: "Unavailable",
                     style = MaterialTheme.typography.titleLarge,
-                    color = contentColor.value
+                    /*color = contentColor.value*/
                 )
 
                 AnimatedVisibility(visible = shouldShowDescription) {
                     Text(
                         text = article.description ?: "Unavailable",
                         style = MaterialTheme.typography.bodySmall,
-                        color = contentColor.value,
+                        /*color = contentColor.value,*/
                         modifier = Modifier.padding(
                             top = 12.dp,
                             bottom = 12.dp
@@ -173,16 +248,16 @@ fun NewsArticle(
                 Text(
                     text = "${if (article.author != null) article.author + " • " else ""}${article.getDisplayDate()}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor.value
+                    /*color = contentColor.value*/
                 )
 
                 AnimatedVisibility(visible = !shouldShowDescription) {
-                    ElevatedButton(
+                    TextButton(
                         onClick = { shouldShowDescription = true },
-                        colors = ButtonDefaults.elevatedButtonColors(
+                        /*colors = ButtonDefaults.elevatedButtonColors(
                             containerColor = contentColor.value,
                             contentColor = containerColor.value
-                        )
+                        )*/
                     ) {
                         Text(text = "Quick read")
                     }
@@ -198,8 +273,11 @@ fun NewsArticle(
 @Composable
 fun NewsArticlePreview() {
 
-    NewsArticle(modifier = Modifier.fillMaxWidth(), article = Dummy.article, articleClicked = {
+    VerticalNewsArticle(
+        modifier = Modifier.fillMaxWidth(),
+        article = Dummy.article,
+        articleClicked = {
 
-    })
+        })
 
 }
